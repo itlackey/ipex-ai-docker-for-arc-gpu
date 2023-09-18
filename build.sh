@@ -1,0 +1,1 @@
+docker build -t ipex-ai-arc -f Dockerfile .

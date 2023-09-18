@@ -107,11 +107,13 @@ RUN apt-get update && \
     apt-get clean && \
     rm -rf  /var/lib/apt/lists/*
 
-COPY startup.sh /bin/
-RUN chmod 755 /bin/startup.sh
+
+COPY startup.sh /bin/sd-startup.sh
+RUN chmod 755 /bin/sd-startup.sh
 
 VOLUME [ "/deps" ]
 VOLUME [ "/sd-webui" ]
+VOLUME [ "/apps" ]
 VOLUME [ "/root/.cache/huggingface" ]
 
 ENV venv_dir=/deps/venv
@@ -122,7 +124,16 @@ ENV LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libjemalloc.so
 ENV NEOReadDebugKeys=1
 ENV ClDeviceGlobalMemSizeAvailablePercent=100
 
-WORKDIR /sd-webui
+WORKDIR /apps
 
-ENTRYPOINT [ "startup.sh", "-f", "--use-ipex", "--listen" ]
-CMD [ "--insecure" ]
+# llama.cpp dependencies
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends --fix-missing \
+    build-essential \
+    opencl-headers \
+    clblast-utils
+
+# Install llama-cpp-python
+RUN CMAKE_ARGS="-DLLAMA_CLBLAST=on" FORCE_CMAKE=1 pip install llama-cpp-python  --force-reinstall --upgrade --no-cache-dir
+
+CMD [ "bash" ]
