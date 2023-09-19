@@ -130,10 +130,17 @@ WORKDIR /apps
 RUN apt-get update && \
     apt-get install -y --no-install-recommends --fix-missing \
     build-essential \
+    git-lfs \
     opencl-headers \
     clblast-utils
 
+# Install Torch
+RUN python -m pip install torch==2.0.1a0 torchvision==0.15.2a0 intel_extension_for_pytorch==2.0.110+xpu --extra-index-url https://pytorch-extension.intel.com/release-whl/stable/xpu/us/
+
 # Install llama-cpp-python
 RUN CMAKE_ARGS="-DLLAMA_CLBLAST=on" FORCE_CMAKE=1 pip install llama-cpp-python  --force-reinstall --upgrade --no-cache-dir
+
+# Install fschat
+RUN pip3 install "fschat[model_worker,webui]"
 
 CMD [ "bash" ]
